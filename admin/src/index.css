@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+.bg-app {
+  background-color: #F0F2F5;
+  background-image: radial-gradient(circle, #D1D5DB 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.card-accent {
+  border-left: 4px solid #C0161A;
+}
+
+.card-hover {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(192, 22, 26, 0.12), 0 4px 8px -2px rgba(0,0,0,0.06);
+}
