@@ -35,5 +35,6 @@ CREATE TABLE IF NOT EXISTS reservaciones (
 CREATE TABLE IF NOT EXISTS maestro_horarios (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   maestro_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  horario_id  UUID NOT NULL REFERENCES horarios(id) ON DELETE CASCADE
+  horario_id  UUID NOT NULL REFERENCES horarios(id) ON DELETE CASCADE,
+  nivel       nivel_enum
 );

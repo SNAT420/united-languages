@@ -26,5 +26,7 @@ export const api = {
   crearAlumno:     (body)  => request('/admin/alumnos', { method: 'POST', body: JSON.stringify(body) }),
   getMaestros:     ()      => request('/admin/maestros'),
   crearMaestro:    (body)  => request('/admin/maestros', { method: 'POST', body: JSON.stringify(body) }),
-  getReservaciones:(fecha) => request(`/admin/reservaciones?fecha=${fecha}`),
+  getReservaciones:    (fecha)                  => request(`/admin/reservaciones?fecha=${fecha}`),
+  getMaestroHorarios:  (id)                      => request(`/admin/maestros/${id}/horarios`),
+  asignarNivel:        (maestroId, horarioId, nivel) => request(`/admin/maestros/${maestroId}/horarios/${horarioId}`, { method: 'PUT', body: JSON.stringify({ nivel }) }),
 };

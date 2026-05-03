@@ -12,9 +12,8 @@ async function clasesHoy(req, res) {
     return res.json({ fecha, dia_semana: diaSemana, clases: [] });
   }
 
-  // Horarios asignados al maestro para el día de hoy
   const { rows: horarios } = await db.query(
-    `SELECT h.id, h.hora_inicio, h.hora_fin
+    `SELECT h.id, h.hora_inicio, h.hora_fin, mh.nivel
      FROM maestro_horarios mh
      JOIN horarios h ON h.id = mh.horario_id
      WHERE mh.maestro_id = $1 AND h.dia_semana = $2
@@ -22,7 +21,6 @@ async function clasesHoy(req, res) {
     [req.user.id, diaSemana]
   );
 
-  // Para cada horario, obtener alumnos con reservación hoy
   const clases = await Promise.all(
     horarios.map(async (h) => {
       const { rows: alumnos } = await db.query(
@@ -30,8 +28,9 @@ async function clasesHoy(req, res) {
          FROM reservaciones r
          JOIN users u ON u.id = r.alumno_id
          WHERE r.horario_id = $1 AND r.fecha = $2
+           AND ($3::nivel_enum IS NULL OR u.nivel = $3::nivel_enum)
          ORDER BY u.nombre`,
-        [h.id, fecha]
+        [h.id, fecha, h.nivel]
       );
       return { ...h, alumnos };
     })

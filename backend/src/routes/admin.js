@@ -10,5 +10,7 @@ router.post('/alumnos', ...isAdmin, ctrl.crearAlumno);
 router.get('/maestros', ...isAdmin, ctrl.getMaestros);
 router.post('/maestros', ...isAdmin, ctrl.crearMaestro);
 router.get('/reservaciones', ...isAdmin, ctrl.getReservaciones);
+router.get('/maestros/:id/horarios', ...isAdmin, ctrl.getMaestroHorarios);
+router.put('/maestros/:id/horarios/:horario_id', ...isAdmin, ctrl.asignarNivel);
 
 module.exports = router;

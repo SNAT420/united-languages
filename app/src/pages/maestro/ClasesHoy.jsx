@@ -106,9 +106,16 @@ export default function ClasesHoy() {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-gray-900 text-sm">
-                    {formatHora(clase.hora_inicio)} – {formatHora(clase.hora_fin)}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-black text-gray-900 text-sm">
+                      {formatHora(clase.hora_inicio)} – {formatHora(clase.hora_fin)}
+                    </p>
+                    {clase.nivel && (
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${NIVEL_BADGE[clase.nivel]}`}>
+                        {NIVEL_LABEL[clase.nivel]}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2 mt-1">
                     {/* Avatares apilados */}
                     {ocupacion > 0 && (
