@@ -1,6 +1,19 @@
 const db = require('../db/client');
 
-const DIAS = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+const DIAS   = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+const NIVELES = ['inicial', 'intermedio', 'avanzado'];
+
+// Seed basado en día del año (0-364) → 0,1,2 — diferente cada día, consistente para todos
+function seedDelDia(fechaStr) {
+  const d = new Date(fechaStr + 'T00:00:00');
+  const inicio = new Date(d.getFullYear(), 0, 1);
+  return Math.floor((d - inicio) / 86400000) % 3;
+}
+
+// Nivel que imparte el maestro j en el slot i del día con semilla seed
+function nivelEnSlot(seed, maestroIndex, slotIndex) {
+  return NIVELES[(seed + maestroIndex + (slotIndex % 3) + Math.floor(slotIndex / 3)) % 3];
+}
 
 // GET /api/maestro/clases-hoy
 async function clasesHoy(req, res) {
@@ -39,4 +52,38 @@ async function clasesHoy(req, res) {
   res.json({ fecha, dia_semana: diaSemana, clases });
 }
 
-module.exports = { clasesHoy };
+// GET /api/maestro/horario-dia?fecha=YYYY-MM-DD
+async function horarioDia(req, res) {
+  const fecha = req.query.fecha || new Date().toISOString().slice(0, 10);
+  const diaSemana = DIAS[new Date(fecha + 'T00:00:00').getDay()];
+
+  if (diaSemana === 'domingo') {
+    return res.json({ fecha, dia_semana: diaSemana, maestros: [], horarios: [] });
+  }
+
+  const seed = seedDelDia(fecha);
+
+  const [{ rows: maestros }, { rows: slots }] = await Promise.all([
+    db.query(
+      `SELECT id, nombre FROM users WHERE rol = 'maestro' AND activo = true ORDER BY created_at, id`
+    ),
+    db.query(
+      `SELECT id, hora_inicio, hora_fin FROM horarios WHERE dia_semana = $1 ORDER BY hora_inicio`,
+      [diaSemana]
+    ),
+  ]);
+
+  const horarios = slots.map((h, slotIdx) => ({
+    horario_id: h.id,
+    hora_inicio: h.hora_inicio,
+    hora_fin:    h.hora_fin,
+    asignaciones: maestros.map((m, maestroIdx) => ({
+      maestro_id: m.id,
+      nivel: nivelEnSlot(seed, maestroIdx, slotIdx),
+    })),
+  }));
+
+  res.json({ fecha, dia_semana: diaSemana, seed, maestros, horarios });
+}
+
+module.exports = { clasesHoy, horarioDia };
