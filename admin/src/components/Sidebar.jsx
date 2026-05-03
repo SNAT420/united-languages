@@ -18,6 +18,10 @@ const links = [
     to: '/reservaciones', label: 'Reservaciones',
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>,
   },
+  {
+    to: '/anuncios', label: 'Anuncios',
+    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>,
+  },
 ];
 
 export default function Sidebar() {

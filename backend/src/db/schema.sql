@@ -32,6 +32,17 @@ CREATE TABLE IF NOT EXISTS reservaciones (
   UNIQUE (alumno_id, fecha, horario_id)
 );
 
+CREATE TABLE IF NOT EXISTS anuncios (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  titulo      VARCHAR(200) NOT NULL,
+  contenido   TEXT NOT NULL,
+  activo      BOOLEAN NOT NULL DEFAULT true,
+  fecha_inicio DATE NOT NULL DEFAULT CURRENT_DATE,
+  fecha_fin   DATE,
+  creado_por  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at  TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS maestro_horarios (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   maestro_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

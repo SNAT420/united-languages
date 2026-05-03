@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
 import AppHeader from '../../components/AppHeader';
+import AnunciosBanner from '../../components/AnunciosBanner';
 
 const NIVEL_BADGE = {
   inicial:    'bg-emerald-50 text-emerald-700 border border-emerald-200',
@@ -20,13 +21,14 @@ function formatHora(t) { return t.slice(0, 5); }
 export default function ClasesHoy() {
   const { user } = useAuth();
   const [data, setData] = useState(null);
+  const [anuncios, setAnuncios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [abierto, setAbierto] = useState(null);
 
   useEffect(() => {
-    api.clasesHoy()
-      .then(setData)
+    Promise.all([api.clasesHoy(), api.anuncios()])
+      .then(([clases, anunciosData]) => { setData(clases); setAnuncios(anunciosData); })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
@@ -70,6 +72,12 @@ export default function ClasesHoy() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {anuncios.length > 0 && (
+        <div className="px-4 pt-3">
+          <AnunciosBanner anuncios={anuncios} />
         </div>
       )}
 

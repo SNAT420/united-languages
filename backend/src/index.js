@@ -10,6 +10,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/reservaciones', require('./routes/reservaciones'));
 app.use('/api/usuarios', require('./routes/usuarios'));
 app.use('/api/maestro', require('./routes/maestro'));
+app.use('/api/anuncios', require('./routes/anuncios'));
 app.use('/api/admin', require('./routes/admin'));
 
 app.get('/health', (req, res) => res.json({ ok: true }));

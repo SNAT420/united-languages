@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import AppHeader from '../components/AppHeader';
+import AnunciosBanner from '../components/AnunciosBanner';
 
 function manana() {
   const d = new Date();
@@ -26,6 +27,7 @@ export default function Reservar() {
 
   const [horarios, setHorarios] = useState([]);
   const [semana, setSemana] = useState(null);
+  const [anuncios, setAnuncios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reservando, setReservando] = useState(null);
   const [toast, setToast] = useState(null);
@@ -33,9 +35,10 @@ export default function Reservar() {
   async function cargar() {
     setLoading(true);
     try {
-      const [h, s] = await Promise.all([api.disponibilidad(fecha), api.horasSemana()]);
+      const [h, s, a] = await Promise.all([api.disponibilidad(fecha), api.horasSemana(), api.anuncios()]);
       setHorarios(h);
       setSemana(s);
+      setAnuncios(a);
     } catch (err) {
       showToast(err.message, 'error');
     } finally {
@@ -115,6 +118,9 @@ export default function Reservar() {
             </p>
           )}
         </div>
+
+        {/* Anuncios */}
+        <AnunciosBanner anuncios={anuncios} />
 
         {/* Sección horarios */}
         <div>

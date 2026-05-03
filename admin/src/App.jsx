@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Alumnos from './pages/Alumnos';
 import Maestros from './pages/Maestros';
 import Reservaciones from './pages/Reservaciones';
+import Anuncios from './pages/Anuncios';
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();
@@ -24,6 +25,7 @@ function AppRoutes() {
       <Route path="/alumnos"      element={<PrivateRoute><Alumnos /></PrivateRoute>} />
       <Route path="/maestros"     element={<PrivateRoute><Maestros /></PrivateRoute>} />
       <Route path="/reservaciones" element={<PrivateRoute><Reservaciones /></PrivateRoute>} />
+      <Route path="/anuncios"      element={<PrivateRoute><Anuncios /></PrivateRoute>} />
       <Route path="*" element={<Navigate to={isAdmin ? '/dashboard' : '/login'} replace />} />
     </Routes>
   );

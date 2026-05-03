@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { auth, requireRol } = require('../middleware/auth');
 const ctrl = require('../controllers/adminController');
+const anuncios = require('../controllers/anunciosController');
 
 const isAdmin = [auth, requireRol('admin')];
 
@@ -12,5 +13,10 @@ router.post('/maestros', ...isAdmin, ctrl.crearMaestro);
 router.get('/reservaciones', ...isAdmin, ctrl.getReservaciones);
 router.get('/maestros/:id/horarios', ...isAdmin, ctrl.getMaestroHorarios);
 router.put('/maestros/:id/horarios/:horario_id', ...isAdmin, ctrl.asignarNivel);
+
+router.get('/anuncios',      ...isAdmin, anuncios.getTodos);
+router.post('/anuncios',     ...isAdmin, anuncios.crear);
+router.put('/anuncios/:id',  ...isAdmin, anuncios.editar);
+router.delete('/anuncios/:id', ...isAdmin, anuncios.eliminar);
 
 module.exports = router;
