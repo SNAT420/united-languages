@@ -153,4 +153,76 @@ async function asignarNivel(req, res) {
   res.json(rows[0]);
 }
 
-module.exports = { getAlumnos, getMaestros, crearAlumno, crearMaestro, getReservaciones, getDashboard, getMaestroHorarios, asignarNivel };
+async function editarAlumno(req, res) {
+  const { id } = req.params;
+  const { nombre, correo, numero_alumno, nivel, password } = req.body;
+
+  const sets = []; const vals = []; let i = 1;
+  if (nombre         !== undefined) { sets.push(`nombre = $${i++}`);               vals.push(nombre); }
+  if (correo         !== undefined) { sets.push(`correo = $${i++}`);               vals.push(correo); }
+  if (numero_alumno  !== undefined) { sets.push(`numero_alumno = $${i++}`);        vals.push(numero_alumno); }
+  if (nivel          !== undefined) { sets.push(`nivel = $${i++}::nivel_enum`);    vals.push(nivel || null); }
+  if (password)                     { sets.push(`password_hash = $${i++}`);        vals.push(await bcrypt.hash(password, 10)); }
+
+  if (sets.length === 0) return res.status(400).json({ error: 'Sin cambios' });
+  vals.push(id);
+
+  try {
+    const { rows } = await db.query(
+      `UPDATE users SET ${sets.join(', ')} WHERE id = $${i} AND rol = 'alumno'
+       RETURNING id, nombre, correo, numero_alumno, nivel`,
+      vals
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'Alumno no encontrado' });
+    res.json(rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(400).json({ error: 'El correo o número de alumno ya existe' });
+    throw err;
+  }
+}
+
+async function eliminarAlumno(req, res) {
+  const { id } = req.params;
+  const { rowCount } = await db.query(
+    `DELETE FROM users WHERE id = $1 AND rol = 'alumno'`, [id]
+  );
+  if (rowCount === 0) return res.status(404).json({ error: 'Alumno no encontrado' });
+  res.json({ ok: true });
+}
+
+async function editarMaestro(req, res) {
+  const { id } = req.params;
+  const { nombre, correo, password } = req.body;
+
+  const sets = []; const vals = []; let i = 1;
+  if (nombre !== undefined) { sets.push(`nombre = $${i++}`); vals.push(nombre); }
+  if (correo !== undefined) { sets.push(`correo = $${i++}`); vals.push(correo); }
+  if (password)             { sets.push(`password_hash = $${i++}`); vals.push(await bcrypt.hash(password, 10)); }
+
+  if (sets.length === 0) return res.status(400).json({ error: 'Sin cambios' });
+  vals.push(id);
+
+  try {
+    const { rows } = await db.query(
+      `UPDATE users SET ${sets.join(', ')} WHERE id = $${i} AND rol = 'maestro'
+       RETURNING id, nombre, correo, numero_alumno`,
+      vals
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'Maestro no encontrado' });
+    res.json(rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(400).json({ error: 'El correo ya existe' });
+    throw err;
+  }
+}
+
+async function eliminarMaestro(req, res) {
+  const { id } = req.params;
+  const { rowCount } = await db.query(
+    `DELETE FROM users WHERE id = $1 AND rol = 'maestro'`, [id]
+  );
+  if (rowCount === 0) return res.status(404).json({ error: 'Maestro no encontrado' });
+  res.json({ ok: true });
+}
+
+module.exports = { getAlumnos, getMaestros, crearAlumno, crearMaestro, editarAlumno, eliminarAlumno, editarMaestro, eliminarMaestro, getReservaciones, getDashboard, getMaestroHorarios, asignarNivel };
