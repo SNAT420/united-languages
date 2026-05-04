@@ -15,11 +15,20 @@ function nivelEnSlot(seed, maestroIndex, slotIndex) {
   return NIVELES[(seed + maestroIndex + (slotIndex % 3) + Math.floor(slotIndex / 3)) % 3];
 }
 
+const TZ = 'America/Mexico_City';
+function hoyMexico() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date());
+}
+function diaSemanaHoyMexico() {
+  return new Intl.DateTimeFormat('es-MX', { timeZone: TZ, weekday: 'long' })
+    .format(new Date())
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); // sin tildes
+}
+
 // GET /api/maestro/clases-hoy
 async function clasesHoy(req, res) {
-  const hoy = new Date();
-  const fecha = hoy.toISOString().slice(0, 10);
-  const diaSemana = DIAS[hoy.getDay()];
+  const fecha     = hoyMexico();
+  const diaSemana = DIAS[new Date(fecha + 'T12:00:00').getDay()];
 
   if (diaSemana === 'domingo') {
     return res.json({ fecha, dia_semana: diaSemana, clases: [] });

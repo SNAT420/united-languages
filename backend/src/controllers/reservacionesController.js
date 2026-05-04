@@ -4,6 +4,20 @@ const MAX_CUPO = 8;
 const MAX_HORAS_SEMANA = 6;
 const MIN_MINUTOS_CANCELAR = 60;
 
+const TZ = 'America/Mexico_City';
+
+// Devuelve 'YYYY-MM-DD' de hoy en hora de México, independientemente del TZ del servidor
+function hoyMexico() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date());
+}
+
+// Devuelve 'YYYY-MM-DD' de mañana en hora de México
+function mananaMexico() {
+  const [y, m, d] = hoyMexico().split('-').map(Number);
+  const t = new Date(y, m - 1, d + 1);
+  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+}
+
 // GET /api/reservaciones/disponibilidad?fecha=YYYY-MM-DD
 async function disponibilidad(req, res) {
   const { fecha } = req.query;
@@ -42,10 +56,7 @@ async function crear(req, res) {
     return res.status(400).json({ error: 'horario_id y fecha son requeridos' });
   }
 
-  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-  const manana = new Date(hoy); manana.setDate(manana.getDate() + 1);
-  const fechaSolicitada = new Date(fecha + 'T00:00:00');
-  if (fechaSolicitada.getTime() !== manana.getTime()) {
+  if (fecha !== mananaMexico()) {
     return res.status(400).json({ error: 'Solo puedes reservar para el día de mañana' });
   }
 

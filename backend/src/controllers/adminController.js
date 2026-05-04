@@ -1,6 +1,11 @@
 const bcrypt = require('bcryptjs');
 const db = require('../db/client');
 
+const TZ = 'America/Mexico_City';
+function hoyMexico() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date());
+}
+
 async function getAlumnos(req, res) {
   const { rows } = await db.query(
     `SELECT id, nombre, correo, numero_alumno, nivel, activo, created_at
@@ -60,7 +65,7 @@ async function crearMaestro(req, res) {
 }
 
 async function getReservaciones(req, res) {
-  const fecha = req.query.fecha || new Date().toISOString().slice(0, 10);
+  const fecha = req.query.fecha || hoyMexico();
 
   const { rows } = await db.query(
     `SELECT h.id AS horario_id, h.hora_inicio, h.hora_fin,
@@ -107,7 +112,7 @@ async function getReservaciones(req, res) {
 }
 
 async function getDashboard(req, res) {
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyMexico();
   const [{ rows: r1 }, { rows: r2 }, { rows: r3 }] = await Promise.all([
     db.query(`SELECT COUNT(*)::int AS total FROM reservaciones WHERE fecha = $1`, [hoy]),
     db.query(`SELECT COUNT(*)::int AS total FROM users WHERE rol = 'alumno' AND activo = true`),
