@@ -170,7 +170,9 @@ export default function Reservar() {
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <div className={`w-1.5 h-1.5 rounded-full ${lleno ? 'bg-gray-300' : 'bg-emerald-400'}`} />
                         <p className="text-[11px] text-gray-400 font-medium">
-                          {lleno ? 'Sin lugares' : `${h.cupo_restante} lugar${h.cupo_restante !== 1 ? 'es' : ''} libre${h.cupo_restante !== 1 ? 's' : ''}`}
+                          {lleno
+                            ? 'Tu nivel está lleno'
+                            : `${h.cupo_restante} lugar${h.cupo_restante !== 1 ? 'es' : ''} en tu nivel`}
                         </p>
                       </div>
                     </div>

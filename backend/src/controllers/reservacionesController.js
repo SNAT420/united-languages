@@ -23,25 +23,36 @@ async function disponibilidad(req, res) {
   const { fecha } = req.query;
   if (!fecha) return res.status(400).json({ error: 'Parámetro fecha requerido' });
 
+  // Obtener nivel del alumno para mostrar disponibilidad de su nivel específico
+  const { rows: alumnoRows } = await db.query(
+    'SELECT nivel FROM users WHERE id = $1', [req.user.id]
+  );
+  const nivelAlumno = alumnoRows[0]?.nivel ?? null;
+
   const fechaDate = new Date(fecha + 'T00:00:00');
   const diasSemana = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
   const diaSemana = diasSemana[fechaDate.getDay()];
 
   if (diaSemana === 'domingo') return res.json([]);
 
+  // Contar reservados solo del nivel del alumno (o total si no tiene nivel)
   const { rows } = await db.query(
     `SELECT h.id, h.hora_inicio, h.hora_fin,
-            COUNT(r.id)::int AS reservados
+            COUNT(r.id) FILTER (
+              WHERE $3::nivel_enum IS NULL OR u.nivel = $3::nivel_enum
+            )::int AS reservados
      FROM horarios h
      LEFT JOIN reservaciones r ON r.horario_id = h.id AND r.fecha = $1
+     LEFT JOIN users u ON u.id = r.alumno_id
      WHERE h.dia_semana = $2
      GROUP BY h.id
      ORDER BY h.hora_inicio`,
-    [fecha, diaSemana]
+    [fecha, diaSemana, nivelAlumno]
   );
 
   res.json(rows.map((h) => ({
     ...h,
+    nivel_alumno: nivelAlumno,
     disponible: h.reservados < MAX_CUPO,
     cupo_restante: Math.max(0, MAX_CUPO - h.reservados),
   })));
@@ -60,17 +71,30 @@ async function crear(req, res) {
     return res.status(400).json({ error: 'Solo puedes reservar para el día de mañana' });
   }
 
+  // Obtener nivel del alumno — requerido para validar cupo por nivel
+  const { rows: alumnoRows } = await db.query(
+    'SELECT nivel FROM users WHERE id = $1', [alumno_id]
+  );
+  const nivelAlumno = alumnoRows[0]?.nivel;
+  if (!nivelAlumno) {
+    return res.status(400).json({ error: 'Tu perfil no tiene un nivel asignado. Contacta al administrador.' });
+  }
+
   const horasUsadas = await horasSemana(alumno_id, fecha);
   if (horasUsadas >= MAX_HORAS_SEMANA) {
     return res.status(400).json({ error: 'Alcanzaste el límite de 6 horas esta semana' });
   }
 
+  // Validar cupo POR NIVEL: máximo 8 alumnos del mismo nivel por horario
   const { rows: cupo } = await db.query(
-    'SELECT COUNT(*)::int AS total FROM reservaciones WHERE horario_id = $1 AND fecha = $2',
-    [horario_id, fecha]
+    `SELECT COUNT(*)::int AS total
+     FROM reservaciones r
+     JOIN users u ON u.id = r.alumno_id
+     WHERE r.horario_id = $1 AND r.fecha = $2 AND u.nivel = $3::nivel_enum`,
+    [horario_id, fecha, nivelAlumno]
   );
   if (cupo[0].total >= MAX_CUPO) {
-    return res.status(400).json({ error: 'El horario está lleno' });
+    return res.status(400).json({ error: 'No hay lugares disponibles para tu nivel en este horario' });
   }
 
   try {
