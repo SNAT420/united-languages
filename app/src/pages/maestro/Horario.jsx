@@ -199,9 +199,10 @@ function buildRows(horarios, miId) {
           const esMio = a.maestro_id === miId;
           return (
             <td key={a.maestro_id} className={`px-1 py-2.5 text-center ${esMio ? 'bg-red-50/50' : ''}`}>
-              <span className={`inline-block text-[10px] font-black px-1.5 py-1 rounded-lg ${NIVEL_BADGE[a.nivel]} ${esMio ? 'ring-1 ring-[#C0161A]/25 shadow-sm' : ''}`}>
-                {NIVEL_SHORT[a.nivel]}
-              </span>
+              <div className={`inline-flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg ${NIVEL_BADGE[a.nivel]} ${esMio ? 'ring-1 ring-[#C0161A]/25 shadow-sm' : ''}`}>
+                <span className="text-[9px] font-black leading-none">{NIVEL_SHORT[a.nivel]}</span>
+                <span className="text-[10px] font-black leading-none tabular-nums">{a.alumnos}/8</span>
+              </div>
             </td>
           );
         })}

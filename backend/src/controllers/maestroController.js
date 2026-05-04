@@ -63,7 +63,7 @@ async function clasesHoy(req, res) {
 
 // GET /api/maestro/horario-dia?fecha=YYYY-MM-DD
 async function horarioDia(req, res) {
-  const fecha = req.query.fecha || new Date().toISOString().slice(0, 10);
+  const fecha = req.query.fecha || hoyMexico();
   const diaSemana = DIAS[new Date(fecha + 'T00:00:00').getDay()];
 
   if (diaSemana === 'domingo') {
@@ -72,7 +72,7 @@ async function horarioDia(req, res) {
 
   const seed = seedDelDia(fecha);
 
-  const [{ rows: maestros }, { rows: slots }] = await Promise.all([
+  const [{ rows: maestros }, { rows: slots }, { rows: conteos }] = await Promise.all([
     db.query(
       `SELECT id, nombre FROM users WHERE rol = 'maestro' AND activo = true ORDER BY created_at, id`
     ),
@@ -80,16 +80,35 @@ async function horarioDia(req, res) {
       `SELECT id, hora_inicio, hora_fin FROM horarios WHERE dia_semana = $1 ORDER BY hora_inicio`,
       [diaSemana]
     ),
+    db.query(
+      `SELECT r.horario_id, u.nivel, COUNT(*)::int AS total
+       FROM reservaciones r
+       JOIN users u ON u.id = r.alumno_id
+       WHERE r.fecha = $1
+       GROUP BY r.horario_id, u.nivel`,
+      [fecha]
+    ),
   ]);
+
+  // Build lookup: horario_id → nivel → count
+  const conteoMap = {};
+  for (const c of conteos) {
+    if (!conteoMap[c.horario_id]) conteoMap[c.horario_id] = {};
+    conteoMap[c.horario_id][c.nivel] = c.total;
+  }
 
   const horarios = slots.map((h, slotIdx) => ({
     horario_id: h.id,
     hora_inicio: h.hora_inicio,
     hora_fin:    h.hora_fin,
-    asignaciones: maestros.map((m, maestroIdx) => ({
-      maestro_id: m.id,
-      nivel: nivelEnSlot(seed, maestroIdx, slotIdx),
-    })),
+    asignaciones: maestros.map((m, maestroIdx) => {
+      const nivel = nivelEnSlot(seed, maestroIdx, slotIdx);
+      return {
+        maestro_id: m.id,
+        nivel,
+        alumnos: conteoMap[h.id]?.[nivel] ?? 0,
+      };
+    }),
   }));
 
   res.json({ fecha, dia_semana: diaSemana, seed, maestros, horarios });
