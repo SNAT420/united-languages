@@ -44,7 +44,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,ico}'],
         runtimeCaching: [
           {
-            urlPattern: /^http:\/\/localhost:3001\/api\/.*/,
+            // Coincide con cualquier URL que contenga /api/ — funciona en localhost y producción
+            urlPattern: /\/api\/.+/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',

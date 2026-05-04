@@ -6,6 +6,25 @@ const MIN_MINUTOS_CANCELAR = 60;
 
 const TZ = 'America/Mexico_City';
 
+// Convierte una fecha + hora en hora de México al instante UTC equivalente
+// Necesario porque el servidor Railway corre en UTC y new Date("...T09:00:00") lo toma como UTC
+function claseEnUTC(fechaStr, horaStr) {
+  // Calcular el offset UTC de América/México_City en ese día (varía por horario de verano)
+  const probe = new Date(`${fechaStr}T12:00:00Z`); // mediodía UTC en ese día
+  const mxHour = parseInt(
+    new Intl.DateTimeFormat('en-US', { timeZone: TZ, hour: '2-digit', hour12: false }).format(probe)
+  );
+  const offsetHours = 12 - mxHour; // p.ej. 6 en CST (UTC-6) o 5 en CDT (UTC-5)
+  const [h, m] = horaStr.split(':').map(Number);
+  return new Date(Date.UTC(
+    +fechaStr.slice(0, 4),
+    +fechaStr.slice(5, 7) - 1,
+    +fechaStr.slice(8, 10),
+    h + offsetHours,
+    m
+  ));
+}
+
 // Devuelve 'YYYY-MM-DD' de hoy en hora de México, independientemente del TZ del servidor
 function hoyMexico() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date());
@@ -22,6 +41,7 @@ function mananaMexico() {
 async function disponibilidad(req, res) {
   const { fecha } = req.query;
   if (!fecha) return res.status(400).json({ error: 'Parámetro fecha requerido' });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return res.status(400).json({ error: 'Formato de fecha inválido (YYYY-MM-DD)' });
 
   // Obtener nivel del alumno para mostrar disponibilidad de su nivel específico
   const { rows: alumnoRows } = await db.query(
@@ -65,6 +85,9 @@ async function crear(req, res) {
 
   if (!horario_id || !fecha) {
     return res.status(400).json({ error: 'horario_id y fecha son requeridos' });
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+    return res.status(400).json({ error: 'Formato de fecha inválido (YYYY-MM-DD)' });
   }
 
   if (fecha !== mananaMexico()) {
@@ -128,9 +151,10 @@ async function cancelar(req, res) {
 
   const reservacion = rows[0];
 
-  // Construir datetime de inicio de la clase en hora local del servidor
-  const horaStr = reservacion.hora_inicio.slice(0, 5); // "HH:MM"
-  const inicioClase = new Date(`${reservacion.fecha.toISOString().slice(0, 10)}T${horaStr}:00`);
+  // Construir datetime UTC del inicio de la clase respetando la zona horaria de México
+  const fechaStr = reservacion.fecha.toISOString().slice(0, 10);
+  const horaStr  = reservacion.hora_inicio.slice(0, 5); // "HH:MM"
+  const inicioClase = claseEnUTC(fechaStr, horaStr);
   const ahoraMs = Date.now();
   const minutosRestantes = (inicioClase.getTime() - ahoraMs) / 60000;
 

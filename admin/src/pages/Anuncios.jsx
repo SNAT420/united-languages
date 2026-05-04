@@ -22,8 +22,9 @@ export default function Anuncios() {
   const [error, setError]       = useState('');
   const [success, setSuccess]   = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [toggling, setToggling] = useState({}); // id → true
-  const [deleting, setDeleting] = useState({}); // id → true
+  const [toggling, setToggling]         = useState({}); // id → true
+  const [deleting, setDeleting]         = useState({}); // id → true
+  const [confirmEliminar, setConfirmEliminar] = useState(null); // anuncio a eliminar
 
   async function cargar() {
     setLoading(true);
@@ -57,13 +58,15 @@ export default function Anuncios() {
   }
 
   async function handleEliminar(id) {
-    if (!confirm('¿Eliminar este anuncio?')) return;
     setDeleting((d) => ({ ...d, [id]: true }));
     try {
       await api.eliminarAnuncio(id);
       setAnuncios((prev) => prev.filter((a) => a.id !== id));
     } catch (e) { setError(e.message); }
-    finally { setDeleting((d) => ({ ...d, [id]: false })); }
+    finally {
+      setDeleting((d) => ({ ...d, [id]: false }));
+      setConfirmEliminar(null);
+    }
   }
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -180,7 +183,7 @@ export default function Anuncios() {
                         {toggling[a.id] ? '…' : a.activo ? 'Desactivar' : 'Activar'}
                       </button>
                       <button
-                        onClick={() => handleEliminar(a.id)}
+                        onClick={() => setConfirmEliminar(a)}
                         disabled={deleting[a.id]}
                         title="Eliminar"
                         className="w-7 h-7 flex items-center justify-center rounded-lg border-2 border-gray-200 text-gray-400 hover:border-red-200 hover:text-[#C0161A] hover:bg-red-50 active:scale-95 transition-all disabled:opacity-50"
@@ -201,6 +204,42 @@ export default function Anuncios() {
           </table>
         )}
       </div>
+      {confirmEliminar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !deleting[confirmEliminar.id] && setConfirmEliminar(null)} />
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden">
+            <div className="h-1.5 w-full" style={{ background: 'linear-gradient(90deg, #C0161A, #E53E3E)' }} />
+            <div className="px-6 py-6 flex flex-col items-center text-center gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#C0161A" strokeWidth={2} className="w-7 h-7">
+                  <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <p className="text-xl font-black text-gray-900">¿Eliminar anuncio?</p>
+              <p className="text-sm text-gray-500 font-medium leading-relaxed">
+                "{confirmEliminar.titulo}"<br />Esta acción no se puede deshacer.
+              </p>
+            </div>
+            <div className="px-6 pb-6 flex gap-3">
+              <button
+                onClick={() => setConfirmEliminar(null)}
+                disabled={deleting[confirmEliminar.id]}
+                className="flex-1 text-sm font-bold px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 hover:bg-gray-50 transition-all disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleEliminar(confirmEliminar.id)}
+                disabled={deleting[confirmEliminar.id]}
+                className="flex-1 text-white text-sm font-black px-4 py-2.5 rounded-xl transition hover:opacity-90 disabled:opacity-60"
+                style={{ background: 'linear-gradient(135deg, #C0161A, #9E1215)' }}
+              >
+                {deleting[confirmEliminar.id] ? 'Eliminando…' : 'Eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

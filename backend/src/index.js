@@ -2,6 +2,18 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
+// En Express 4 los async handlers no pasan errores a next() automáticamente.
+// Este parche replica la lógica de handle_request capturando Promises rechazadas.
+const Layer = require('express/lib/router/layer');
+Layer.prototype.handle_request = function asyncPatch(req, res, next) {
+  const fn = this.handle;
+  if (fn.length > 3) return next(); // error handler: no tocar
+  try {
+    const result = fn.call(this, req, res, next);
+    if (result && typeof result.then === 'function') result.catch(next);
+  } catch (err) { next(err); }
+};
+
 const app = express();
 
 // Orígenes permitidos: variable de entorno ALLOWED_ORIGINS (coma-separados) + localhost dev

@@ -14,6 +14,12 @@ async function request(path, options = {}) {
       ...options.headers,
     },
   });
+  if (res.status === 401) {
+    localStorage.removeItem('ul_admin_token');
+    localStorage.removeItem('ul_admin_user');
+    window.location.href = '/login';
+    return;
+  }
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Error de servidor');
   return data;
