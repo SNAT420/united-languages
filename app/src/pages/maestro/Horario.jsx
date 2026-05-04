@@ -206,7 +206,7 @@ function buildRows(horarios, miId) {
               {a.numeros.length > 0 && (
                 <div className="mt-1 flex flex-col items-center gap-px">
                   {a.numeros.map((n) => (
-                    <span key={n} className="text-[9px] text-gray-400 tabular-nums leading-tight">{n}</span>
+                    <span key={n} className="text-[13px] font-medium text-gray-500 tabular-nums leading-snug">{n}</span>
                   ))}
                 </div>
               )}
