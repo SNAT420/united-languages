@@ -9,6 +9,7 @@ import MisClases from './pages/MisClases';
 import Perfil from './pages/Perfil';
 import ClasesHoy from './pages/maestro/ClasesHoy';
 import Horario from './pages/maestro/Horario';
+import HorarioAlumno from './pages/HorarioAlumno';
 
 function homeByRol(rol) {
   if (rol === 'maestro') return '/maestro/hoy';
@@ -75,6 +76,16 @@ function AppRoutes() {
         element={
           <PrivateRoute roles={['maestro']}>
             <WithNav nav={<BottomNavMaestro />}><Horario /></WithNav>
+          </PrivateRoute>
+        }
+      />
+
+      {/* Horario alumno */}
+      <Route
+        path="/horario"
+        element={
+          <PrivateRoute roles={['alumno']}>
+            <WithNav nav={<BottomNav />}><HorarioAlumno /></WithNav>
           </PrivateRoute>
         }
       />

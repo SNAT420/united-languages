@@ -12,6 +12,16 @@ const tabs = [
     ),
   },
   {
+    to: '/horario',
+    label: 'Horario',
+    icon: (active) => (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} className="w-5 h-5">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M3 9h18M9 21V9M15 21V9" />
+      </svg>
+    ),
+  },
+  {
     to: '/mis-clases',
     label: 'Mis clases',
     icon: (active) => (
