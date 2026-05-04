@@ -81,20 +81,21 @@ async function horarioDia(req, res) {
       [diaSemana]
     ),
     db.query(
-      `SELECT r.horario_id, u.nivel, COUNT(*)::int AS total
+      `SELECT r.horario_id, u.nivel, u.numero_alumno
        FROM reservaciones r
        JOIN users u ON u.id = r.alumno_id
        WHERE r.fecha = $1
-       GROUP BY r.horario_id, u.nivel`,
+       ORDER BY u.numero_alumno`,
       [fecha]
     ),
   ]);
 
-  // Build lookup: horario_id → nivel → count
-  const conteoMap = {};
+  // Build lookup: horario_id → nivel → numero_alumno[]
+  const alumnosMap = {};
   for (const c of conteos) {
-    if (!conteoMap[c.horario_id]) conteoMap[c.horario_id] = {};
-    conteoMap[c.horario_id][c.nivel] = c.total;
+    if (!alumnosMap[c.horario_id]) alumnosMap[c.horario_id] = {};
+    if (!alumnosMap[c.horario_id][c.nivel]) alumnosMap[c.horario_id][c.nivel] = [];
+    alumnosMap[c.horario_id][c.nivel].push(c.numero_alumno);
   }
 
   const horarios = slots.map((h, slotIdx) => ({
@@ -103,10 +104,12 @@ async function horarioDia(req, res) {
     hora_fin:    h.hora_fin,
     asignaciones: maestros.map((m, maestroIdx) => {
       const nivel = nivelEnSlot(seed, maestroIdx, slotIdx);
+      const nums = alumnosMap[h.id]?.[nivel] ?? [];
       return {
         maestro_id: m.id,
         nivel,
-        alumnos: conteoMap[h.id]?.[nivel] ?? 0,
+        alumnos: nums.length,
+        numeros: nums,
       };
     }),
   }));

@@ -198,11 +198,18 @@ function buildRows(horarios, miId) {
         {h.asignaciones.map((a) => {
           const esMio = a.maestro_id === miId;
           return (
-            <td key={a.maestro_id} className={`px-1 py-2.5 text-center ${esMio ? 'bg-red-50/50' : ''}`}>
-              <div className={`inline-flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg ${NIVEL_BADGE[a.nivel]} ${esMio ? 'ring-1 ring-[#C0161A]/25 shadow-sm' : ''}`}>
+            <td key={a.maestro_id} className={`px-1 py-2 text-center align-top ${esMio ? 'bg-red-50/50' : ''}`}>
+              <div className={`inline-flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg w-full ${NIVEL_BADGE[a.nivel]} ${esMio ? 'ring-1 ring-[#C0161A]/25 shadow-sm' : ''}`}>
                 <span className="text-[9px] font-black leading-none">{NIVEL_SHORT[a.nivel]}</span>
                 <span className="text-[10px] font-black leading-none tabular-nums">{a.alumnos}/8</span>
               </div>
+              {a.numeros.length > 0 && (
+                <div className="mt-1 flex flex-col items-center gap-px">
+                  {a.numeros.map((n) => (
+                    <span key={n} className="text-[9px] text-gray-400 tabular-nums leading-tight">{n}</span>
+                  ))}
+                </div>
+              )}
             </td>
           );
         })}
