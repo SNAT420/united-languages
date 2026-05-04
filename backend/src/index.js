@@ -30,6 +30,7 @@ app.use('/api/usuarios', require('./routes/usuarios'));
 app.use('/api/maestro', require('./routes/maestro'));
 app.use('/api/anuncios', require('./routes/anuncios'));
 app.use('/api/horario', require('./routes/horario'));
+app.use('/api/alumnos', require('./routes/alumnos'));
 app.use('/api/admin', require('./routes/admin'));
 
 app.get('/health', (req, res) => res.json({ ok: true }));

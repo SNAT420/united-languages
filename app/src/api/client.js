@@ -27,8 +27,8 @@ export const api = {
   misClases: () => request('/reservaciones/mis-clases'),
   horasSemana: () => request('/reservaciones/horas-semana'),
   cancelarReservacion: (id) => request(`/reservaciones/${id}`, { method: 'DELETE' }),
-  anuncios:    ()      => request('/anuncios'),
-  horarioDia:  (fecha) => request(`/horario/dia${fecha ? `?fecha=${fecha}` : ''}`),
-  clasesHoy:   ()      => request('/maestro/clases-hoy'),
-  horarioDia:  (fecha) => request(`/maestro/horario-dia?fecha=${fecha}`),
+  anuncios:         ()      => request('/anuncios'),
+  horarioDiaAlumno: (fecha) => request(`/alumnos/horario-dia${fecha ? `?fecha=${fecha}` : ''}`),
+  horarioDia:       (fecha) => request(`/maestro/horario-dia${fecha ? `?fecha=${fecha}` : ''}`),
+  clasesHoy:        ()      => request('/maestro/clases-hoy'),
 };

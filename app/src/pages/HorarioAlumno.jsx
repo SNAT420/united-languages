@@ -44,21 +44,18 @@ export default function HorarioAlumno() {
   useEffect(() => {
     setLoading(true);
     setError('');
-    api.horarioDia(fecha)
+    api.horarioDiaAlumno(fecha)
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [fecha]);
 
   const esDomingo = data?.dia_semana === 'domingo';
-  const maestrosPorId = Object.fromEntries((data?.maestros ?? []).map((m) => [m.id, m.nombre]));
 
-  // Para cada slot y nivel, devuelve el nombre del maestro asignado
-  function maestroEnNivel(asignaciones, nivel) {
-    const asig = asignaciones.find((a) => a.nivel === nivel);
-    if (!asig) return '—';
-    const nombre = maestrosPorId[asig.maestro_id] ?? '—';
-    return nombre.split(' ')[0]; // solo primer nombre para que quepa
+  function maestroEnNivel(maestrosPorNivel, nivel) {
+    const nombre = maestrosPorNivel?.[nivel];
+    if (!nombre) return '—';
+    return nombre.split(' ')[0];
   }
 
   return (
@@ -116,7 +113,7 @@ export default function HorarioAlumno() {
                 </tr>
               </thead>
               <tbody>
-                {buildRows(data.horarios, maestroEnNivel, NIVEL_CELL)}
+                {buildRows(data.horarios, maestroEnNivel, NIVEL_CELL, NIVELES)}
               </tbody>
             </table>
 
@@ -138,7 +135,7 @@ export default function HorarioAlumno() {
   );
 }
 
-function buildRows(horarios, maestroEnNivel, NIVEL_CELL) {
+function buildRows(horarios, maestroEnNivel, NIVEL_CELL, NIVELES) {
   const rows = [];
   let separatorInserted = false;
 
@@ -162,7 +159,7 @@ function buildRows(horarios, maestroEnNivel, NIVEL_CELL) {
         {NIVELES.map((n) => (
           <td key={n} className="px-2 py-3 text-center">
             <span className={`text-[11px] font-bold ${NIVEL_CELL[n]}`}>
-              {maestroEnNivel(h.asignaciones, n)}
+              {maestroEnNivel(h.maestros_por_nivel, n)}
             </span>
           </td>
         ))}
